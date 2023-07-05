@@ -41,17 +41,26 @@ if (folder != null) {
     board.fit(FitOptions.FRAME_TO_CONTENT);
   };
 
-  const makeTextBox = function (bounds, page, type,) {
+  const makeTextBox = function (bounds, page, type, contents) {
+    var textFrame = pages[page].textFrames.add({
+      geometricBounds: bounds,
+      name: type
+    });
+    var textObject = textFrame.parentStory.paragraphs.item(0);
+    textFrame.contents = contents
+
     if (type === "textArea") {
-      var textFrame = pages[page].textFrames.add({
-        geometricBounds: bounds,
-        name: type
-      });
-      textFrame.contents = "-"
-      var textObject = textFrame.parentStory.paragraphs.item(0);
       textObject.appliedFont = app.fonts.item("Minion Pro");
       textObject.pointSize = 12;
+    };
+
+    if (type === "shotNumber") {
+      textObject.appliedFont = app.fonts.item("Helvetica");
+      textObject.fontStyle = "Bold";
+      textObject.pointSize = 7;
+      textObject.justification = Justification.rightAlign;
     }
+
   };
 
   //2 per page on portrait Layout.//
@@ -83,6 +92,15 @@ if (folder != null) {
     var text2Bounds = [4.60182880458925, 4.27840614207137, 5.40503620060885, 7.71538975858117];
     var text3Bounds = [9.43944205740092, 0.67956135390093, 10.2426494534205, 4.11654497041073];
     var text4Bounds = [9.43944205740092, 4.27840614207137, 10.2426494534205, 7.71538975858117];
+    var shotCountTopBounds = [0.75, 0.125, 1.04966353521118, 0.55333333333333];
+    var shotCountBottomBounds = [5.63033646478882, 0.125, 5.93, 0.55333333333333];
+
+    //textarea Contents
+    var textAreaContent = "-"
+    var shotCounttop = (pageNum * 2) + 1;
+    var shotCountBottom = (pageNum * 2) + 2;
+    shotCounttop = shotCounttop.toString();
+    shotCountBottom = shotCountBottom.toString();
 
     //draw the storyboards and add the images
     makeBoard(0, topBounds, pageNum, sortedImages);
@@ -93,29 +111,15 @@ if (folder != null) {
 
     // create the text frames for each storyboard
 
-    makeTextBox(text1Bounds, pageNum, "textArea");
-    makeTextBox(text2Bounds, pageNum, "textArea");
-    makeTextBox(text3Bounds, pageNum, "textArea");
-    makeTextBox(text4Bounds, pageNum, "textArea");
 
-    //create the text frame for the top shot count.
-    var textFrame5 = pages[pageNum].textFrames.add({ geometricBounds: [0.75, 0.125, 1.04966353521118, 0.55333333333333], name: "shotNumber" });
-    var shotCount = (i * 2) + 1;
-    textFrame5.contents = shotCount.toString();
-    var textObject5 = textFrame5.parentStory.paragraphs.item(0);
-    textObject5.appliedFont = app.fonts.item("Helvetica");
-    textObject5.fontStyle = "Bold";
-    textObject5.pointSize = 7;
-    textObject5.justification = Justification.rightAlign;
-    //create the text frame for the bottom shot
-    var shotCount = (i * 2) + 2;
+    makeTextBox(text1Bounds, pageNum, "textArea", textAreaContent);
+    makeTextBox(text2Bounds, pageNum, "textArea", textAreaContent);
+    makeTextBox(text3Bounds, pageNum, "textArea", textAreaContent);
+    makeTextBox(text4Bounds, pageNum, "textArea", textAreaContent);
 
-    var textFrame6 = pages[pageNum].textFrames.add({ geometricBounds: [5.63033646478882, 0.125, 5.93, 0.55333333333333], name: "shotNumber" });
-    textFrame6.contents = shotCount.toString();
-    var textObject6 = textFrame6.parentStory.paragraphs.item(0);
-    textObject6.appliedFont = app.fonts.item("Helvetica");
-    textObject6.fontStyle = "Bold";
-    textObject6.pointSize = 7;
-    textObject6.justification = Justification.rightAlign;
+    //create the text frames for the shot count.
+    makeTextBox(shotCountTopBounds, pageNum, "shotNumber", shotCounttop);
+    makeTextBox(shotCountBottomBounds, pageNum, "shotNumber", shotCountBottom);
+
   };
 };
