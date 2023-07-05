@@ -41,6 +41,11 @@ if (folder != null) {
     board.fit(FitOptions.FRAME_TO_CONTENT);
   };
 
+  //makeTextBox lays out all the textBoxes with the starter Content in them
+  //bounds is array to define the shape
+  //page is the current page number
+  //type is the kind of textbox for different values
+  //content is whats in the first paragraph
   const makeTextBox = function (bounds, page, type, contents) {
     var textFrame = pages[page].textFrames.add({
       geometricBounds: bounds,
@@ -84,16 +89,17 @@ if (folder != null) {
 
   //place all required Image and Text boxes with proper formatting.
   for (var pageNum = 0; pageNum < pages.length; pageNum++) {
-    //storyboard geometry bounds
-    var topBounds = [0.81360101140728, 1.47011340614745, 3.97753056853144, 7.09558015871421];
-    var botBounds = [5.6945304165179, 1.47116765403961, 8.85727409299847, 7.09452591082206];
-    //textFrame geometry bounds
-    var text1Bounds = [4.60182880458925, 0.67956135390093, 5.40503620060885, 4.11654497041073];
-    var text2Bounds = [4.60182880458925, 4.27840614207137, 5.40503620060885, 7.71538975858117];
-    var text3Bounds = [9.43944205740092, 0.67956135390093, 10.2426494534205, 4.11654497041073];
-    var text4Bounds = [9.43944205740092, 4.27840614207137, 10.2426494534205, 7.71538975858117];
-    var shotCountTopBounds = [0.75, 0.125, 1.04966353521118, 0.55333333333333];
-    var shotCountBottomBounds = [5.63033646478882, 0.125, 5.93, 0.55333333333333];
+    //storyboard geometry bounds inches
+    var topBounds = [0.8136, 1.4701, 3.9775, 7.0956];
+    var botBounds = [5.6945, 1.4712, 8.8572, 7.0945];
+
+    //textFrame geometry bounds inches
+    var text1Bounds = [4.6018, 0.6796, 5.405, 4.1165];
+    var text2Bounds = [4.6018, 4.2784, 5.4050, 7.7154];
+    var text3Bounds = [9.4394, 0.6796, 10.2426, 4.1165];
+    var text4Bounds = [9.4394, 4.2784, 10.2426, 7.7153];
+    var shotCountTopBounds = [0.75, 0.125, 1.0497, 0.5533];
+    var shotCountBottomBounds = [5.6303, 0.125, 5.93, 0.5533];
 
     //textarea Contents
     var textAreaContent = "-"
@@ -110,8 +116,6 @@ if (folder != null) {
     }
 
     // create the text frames for each storyboard
-
-
     makeTextBox(text1Bounds, pageNum, "textArea", textAreaContent);
     makeTextBox(text2Bounds, pageNum, "textArea", textAreaContent);
     makeTextBox(text3Bounds, pageNum, "textArea", textAreaContent);
