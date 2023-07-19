@@ -6,14 +6,16 @@ var sbStyle = null;
 var imageAmount = 0;
 var sortedImages = null;
 var pages = null;
+var textAreaContent = "-"
 
 ///functions///
+
 //makeBoard lays out all the boards with the images in them
 //takes the layoutNum 0 = top, 1 = bottom
 //bounds is array to define the shape
 //page is the current page number
 //images is the folder of images
-const makeBoard = function (layoutNum, bounds, page, images) {
+const makeBoard = function (layoutNum, bounds, page, images, imagesPerPage) {
 
   const board = pages[page].rectangles.add(
     {
@@ -24,7 +26,7 @@ const makeBoard = function (layoutNum, bounds, page, images) {
     }
   );
 
-  board.place(images[page * 2 + layoutNum], false);
+  board.place(images[page * imagesPerPage + layoutNum], false);
   board.fit(FitOptions.FILL_PROPORTIONALLY);
   board.fit(FitOptions.FRAME_TO_CONTENT);
 };
@@ -44,7 +46,7 @@ const makeTextBox = function (bounds, page, type, contents, master) {
       contents: contents
     });
   } else {
-    textFrame = doc.masterSpreads[0].textFrames.add({
+    textFrame = doc.masterSpreads[page].textFrames.add({
       geometricBounds: bounds,
       name: type,
       contents: contents
@@ -62,7 +64,6 @@ const makeTextBox = function (bounds, page, type, contents, master) {
     textObject.appliedFont = app.fonts.item("Helvetica");
     textObject.fontStyle = "Bold";
     textObject.pointSize = 7;
-    textObject.justification = Justification.rightAlign;
   }
 
   if (type === "title") {
@@ -74,65 +75,76 @@ const makeTextBox = function (bounds, page, type, contents, master) {
 
 };
 
-//layout2 per page on portrait Layout.//
-const layout2 = function () {
+//layout takes in boardsperpage 2 or 8
+//spread 0 or 1 where 0 is master page with 2 boards and 1 is with 8
+//sbBounds arr of all the storyboard bounds
+//actionTextbounds arr of all the action boxes bounds
+//dialogueTextBounds arr of all the dialogue boxes bounds
+//shotCountBounds arr of all the shot count boxes bounds
+//the function will layout all the boxes based on prescribed variables
+const layout = function (boardsPerPage, spread, sbBounds, actionTextBounds, dialogueTextBounds, shotCountBounds) {
   //get the number of pages divided by storyboard per page.
-  const numberOfPages = imageAmount % 2;
-
-  //check to see if the number of pages is more than 1. ie 2 storyboards would go on 1 page.
+  const numberOfPages = Math.ceil(imageAmount / boardsPerPage);
+  var actionCount = imageAmount;
+  alert("boardsPerPage" + boardsPerPage)
+  alert("imageamoint " + imageAmount);
+  alert("numberOfPage s" + numberOfPages);
+  //check to see if the number of pages is more than 1. ie 8 storyboards would go on 1 page.
   if (numberOfPages === 1) {
-    for (var i = 2; i <= imageAmount; i = i + 2) {
+    for (var i = boardsPerPage; i <= imageAmount; i = i + boardsPerPage) {
       np = doc.pages.add();
     };
   };
   //if the number of pages is larger than 1
-  if (numberOfPages !== 1) {
-    for (var i = 3; i <= imageAmount; i = i + 2) {
+  if (numberOfPages > 1) {
+    for (var i = boardsPerPage + 1; i <= imageAmount; i = i + boardsPerPage) {
       np = doc.pages.add();
     };
   };
   //get all the pages.
   pages = doc.pages;
 
+  // change the master page to match the layout
+  const masterSpread = doc.masterSpreads[spread];
+
+  for (var i = 0; i < pages.length; i++) {
+    var page = pages.item(i);
+    page.appliedMaster = masterSpread;
+  };
+
   //place all required Image and Text boxes with proper formatting.
   for (var pageNum = 0; pageNum < pages.length; pageNum++) {
-    //storyboard geometry bounds inches
-    var topBounds = [0.8136, 1.4701, 3.9775, 7.0956];
-    var botBounds = [5.6945, 1.4712, 8.8572, 7.0945];
 
-    //textFrame geometry bounds inches
-    var text1Bounds = [4.6018, 0.6796, 5.405, 4.1165];
-    var text2Bounds = [4.6018, 4.2784, 5.4050, 7.7154];
-    var text3Bounds = [9.4394, 0.6796, 10.2426, 4.1165];
-    var text4Bounds = [9.4394, 4.2784, 10.2426, 7.7153];
-    var shotCountTopBounds = [0.75, 0.125, 1.0497, 0.5533];
-    var shotCountBottomBounds = [5.6303, 0.125, 5.93, 0.5533];
+    //draw the graphics
+    for (var shotCount = 0; shotCount <= boardsPerPage - 1; shotCount++) {
+      if (pageNum * boardsPerPage < imageAmount - 1 && actionCount > 0) {
 
-    //textarea Contents
-    var textAreaContent = "-"
-    var shotCounttop = (pageNum * 2) + 1;
-    var shotCountBottom = (pageNum * 2) + 2;
-    shotCounttop = shotCounttop.toString();
-    shotCountBottom = shotCountBottom.toString();
+        //shotcount boxes
+        var shotCountNum = (pageNum * boardsPerPage) + shotCount + 1;
+        makeTextBox(shotCountBounds[shotCount], pageNum, "shotNumber", shotCountNum.toString(), null);
 
-    //draw the storyboards and add the images
-    makeBoard(0, topBounds, pageNum, sortedImages);
+        //storyboard boxes
+        makeBoard(shotCount, sbBounds[shotCount], pageNum, sortedImages, boardsPerPage);
 
-    if (pageNum * 2 < imageAmount - 1) {
-      makeBoard(1, botBounds, pageNum, sortedImages);
-    }
+        //top action box
+        makeTextBox(actionTextBounds[shotCount], pageNum, "textArea", textAreaContent, null);
 
-    // create the text frames for each storyboard
-    makeTextBox(text1Bounds, pageNum, "textArea", textAreaContent, null);
-    makeTextBox(text2Bounds, pageNum, "textArea", textAreaContent, null);
-    makeTextBox(text3Bounds, pageNum, "textArea", textAreaContent, null);
-    makeTextBox(text4Bounds, pageNum, "textArea", textAreaContent, null);
+        //dialogue box
+        makeTextBox(dialogueTextBounds[shotCount], pageNum, "textArea", textAreaContent, null);
 
-    //create the text frames for the shot count.
-    makeTextBox(shotCountTopBounds, pageNum, "shotNumber", shotCounttop, null);
-    makeTextBox(shotCountBottomBounds, pageNum, "shotNumber", shotCountBottom, null);
+        actionCount = actionCount - 1;
+      }
+    };
   };
 };
+
+
+// alert functions
+const showAlert = function () {
+  alert("You must fill in all the fields");
+}
+
+// the main function
 
 const main = function () {
   saveLocation = "";
@@ -182,7 +194,8 @@ const main = function () {
     if (sbFolder !== null) {
       const allImages = sbFolder.getFiles();
       sortedImages = allImages.sort();
-      imageAmount = allImages.length;
+      imageAmount = sortedImages.length;
+
 
       //count through all images
       for (var i = 0; i < imageAmount; i++) {
@@ -192,6 +205,7 @@ const main = function () {
           imageAmount = imageAmount - 1;
         };
       };
+      alert("imageAmount: " + imageAmount);
     };
   };
 
@@ -200,23 +214,112 @@ const main = function () {
     saveFolder.text = Folder.selectDialog("Select Folder to Save this File.");
   };
 
+  //button2 pressed
   button2.onClick = function () {
     if (docTitle.text && saveFolder.text && sbFolderText.text) {
       dlg.close();
       sbStyle = 2;
     } else {
-      alert("You must fill in all the fields");
+      showAlert();
     }
-  }
+  };
+
+  //button8 pressed
+  button8.onClick = function () {
+    if (docTitle.text && saveFolder.text && sbFolderText.text) {
+      dlg.close();
+      sbStyle = 8;
+    }
+    else {
+      showAlert();
+    }
+  };
 
   dlg.show();
 
   if (sbStyle === 2) {
-    const titleBounds = [0.2608, 0.685, 0.4212, 3.895];
+    const titleBounds2 = [0.2608, 0.685, 0.4212, 3.895];
+
+    //storyboard geometry bounds inches
+    const boardBounds2 = [
+      [0.8136, 1.4701, 3.9775, 7.0956],
+      [5.6945, 1.4712, 8.8572, 7.0945]
+    ];
+
+    const actionBounds2 = [
+      [4.6018, 0.6796, 5.405, 4.1165],
+      [9.4394, 0.6796, 10.2426, 4.1165]
+    ];
+
+    const dialogBounds2 = [
+      [4.6018, 4.2784, 5.4050, 7.7154],
+      [9.4394, 4.2784, 10.2426, 7.7153]
+    ]
+
+    const shotCountBounds2 = [
+      [0.75, 0.125, 1.0497, 0.5533],
+      [5.6303, 0.125, 5.93, 0.5533]
+    ]
+
+
     //create the title frame on the master page
-    makeTextBox(titleBounds, 0, "title", docTitle.text, true);
+    makeTextBox(titleBounds2, 0, "title", docTitle.text, true);
     //run the 2 layout per page function
-    layout2();
+    layout(2, 0, boardBounds2, actionBounds2, dialogBounds2, shotCountBounds2);
+  };
+
+  if (sbStyle === 8) {
+    const titleBounds8 = [0.2608, 0.6331, 0.3946, 3.895];
+
+    //storyboard geometry bounds in inches
+    const boardBounds8 = [
+      [0.9139, 0.25, 2.3231, 2.75],
+      [0.9139, 2.9167, 2.3231, 5.4167],
+      [0.9139, 5.5972, 2.3231, 8.0833],
+      [0.9139, 8.25, 2.3231, 10.75],
+      [4.656, 0.25, 6.0652, 2.75],
+      [4.656, 2.9167, 6.0652, 5.4167],
+      [4.656, 5.5972, 6.0652, 8.0833],
+      [4.656, 8.25, 6.0652, 10.75]
+    ];
+
+    const actionBounds8 = [
+      [2.6351, 0.2985, 3.2747, 2.6969],
+      [2.6351, 2.9652, 3.2747, 5.3706],
+      [2.6351, 5.6318, 3.2747, 8.0372],
+      [2.6351, 8.2985, 3.2747, 10.7027],
+      [6.3668, 0.2985, 7.0064, 2.6969],
+      [6.3668, 2.9652, 7.0064, 5.3706],
+      [6.3668, 5.6318, 7.0064, 8.0372],
+      [6.3668, 8.2985, 7.0064, 10.7027]
+    ];
+
+    const dialogBounds8 = [
+      [3.5004, 0.2985, 4.14, 2.6969],
+      [3.5004, 2.9652, 4.14, 5.3706],
+      [3.5004, 5.6318, 4.14, 8.0372],
+      [3.5004, 8.2985, 4.14, 10.7027],
+      [7.2321, 0.2985, 7.8717, 2.6969],
+      [7.2321, 2.9652, 7.8717, 5.3706],
+      [7.2321, 5.6318, 7.8717, 8.0372],
+      [7.2321, 8.2985, 7.8717, 10.7027]
+    ];
+
+    const shotCountBounds8 = [
+      [0.6179, 0.5445, 0.6992, 0.9784],
+      [0.6179, 3.2181, 0.6992, 3.6382],
+      [0.6179, 5.8847, 0.6992, 6.3048],
+      [0.6179, 8.5514, 0.6992, 8.9715],
+      [4.36, 0.5445, 4.4691, 0.9784],
+      [4.36, 3.2181, 4.4691, 3.6382],
+      [4.36, 5.8847, 4.4691, 6.3048],
+      [4.36, 8.5514, 4.4691, 8.9715],
+    ];
+
+    //create the title frame on the master page
+    makeTextBox(titleBounds8, 1, "title", docTitle.text, true);
+    //run the layout per page function
+    layout(8, 1, boardBounds8, actionBounds8, dialogBounds8, shotCountBounds8);
   };
 
   if (dlg.show !== 1) {
@@ -226,4 +329,3 @@ const main = function () {
 };
 
 main();
-
