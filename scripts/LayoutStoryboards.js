@@ -1,4 +1,4 @@
-﻿#target "Indesign";
+#target "Indesign";
 
 const doc = app.activeDocument;
 const DSBS = ".DS_Store"
@@ -39,19 +39,19 @@ const makeBoard = function (layoutNum, bounds, page, images, imagesPerPage) {
 //master is null or true for picking master spreads.
 const makeTextBox = function (bounds, page, type, contents, master) {
   var textFrame = null;
-  if (!master) {
-    textFrame = pages[page].textFrames.add({
-      geometricBounds: bounds,
-      name: type,
-      contents: contents
-    });
-  } else {
-    textFrame = doc.masterSpreads[page].textFrames.add({
-      geometricBounds: bounds,
-      name: type,
-      contents: contents
-    });
-  }
+    if (!master) {
+      textFrame = pages[page].textFrames.add({
+        geometricBounds: bounds,
+        name: type,
+        contents: contents
+      });
+    } else {
+      textFrame = doc.masterSpreads[page].textFrames.add({
+        geometricBounds: bounds,
+        name: type,
+        contents: contents
+      });
+    }
 
   var textObject = textFrame.parentStory.paragraphs.item(0);
 
@@ -84,11 +84,10 @@ const makeTextBox = function (bounds, page, type, contents, master) {
 //the function will layout all the boxes based on prescribed variables
 const layout = function (boardsPerPage, spread, sbBounds, actionTextBounds, dialogueTextBounds, shotCountBounds) {
   //get the number of pages divided by storyboard per page.
+  
   const numberOfPages = Math.ceil(imageAmount / boardsPerPage);
   var actionCount = imageAmount;
-  alert("boardsPerPage" + boardsPerPage)
-  alert("imageamoint " + imageAmount);
-  alert("numberOfPage s" + numberOfPages);
+
   //check to see if the number of pages is more than 1. ie 8 storyboards would go on 1 page.
   if (numberOfPages === 1) {
     for (var i = boardsPerPage; i <= imageAmount; i = i + boardsPerPage) {
@@ -172,8 +171,8 @@ const main = function () {
   saveLocationGroup.orientation = "row";
   saveLocationGroup.alignment = "left";
   saveLocationGroup.add("statictext", undefined, "Save Folder:");
-  var saveFolder = saveLocationGroup.add("edittext");
-  saveFolder.characters = 50;
+  var saveFolderText = saveLocationGroup.add("edittext");
+  saveFolderText.characters = 50;
   const saveFolderButton = saveLocationGroup.add("button", undefined, "Choose Save Location");
 
   const styleGroup = dlg.add("group");
@@ -196,27 +195,36 @@ const main = function () {
       sortedImages = allImages.sort();
       imageAmount = sortedImages.length;
 
-
       //count through all images
       for (var i = 0; i < imageAmount; i++) {
         //Check to see if the .DS_Store file exists on Mac.
-        if (sortedImages[0] === folder + "/" + DSBS) {
+        if (sortedImages[0] == sbFolder + "/" + DSBS) {
           sortedImages.shift();
           imageAmount = imageAmount - 1;
         };
       };
-      alert("imageAmount: " + imageAmount);
     };
   };
 
   //Open a dialogue to choose where to save the file
   saveFolderButton.onClick = function () {
-    saveFolder.text = Folder.selectDialog("Select Folder to Save this File.");
+    var query = Folder.selectDialog("Select Folder to Save this File.");
+    saveFolder = query;
+    saveFolderText.text = query;
   };
+
+   const saveFile = function() {
+    var fileName = docTitle.text + ".indd";
+    
+    if(doc.saved === false) {
+      doc.save(File(saveFolder + "/" + fileName));
+    }
+
+   }
 
   //button2 pressed
   button2.onClick = function () {
-    if (docTitle.text && saveFolder.text && sbFolderText.text) {
+    if (docTitle.text && saveFolderText.text && sbFolderText.text) {
       dlg.close();
       sbStyle = 2;
     } else {
@@ -226,7 +234,7 @@ const main = function () {
 
   //button8 pressed
   button8.onClick = function () {
-    if (docTitle.text && saveFolder.text && sbFolderText.text) {
+    if (docTitle.text && saveFolderText.text && sbFolderText.text) {
       dlg.close();
       sbStyle = 8;
     }
@@ -266,6 +274,8 @@ const main = function () {
     makeTextBox(titleBounds2, 0, "title", docTitle.text, true);
     //run the 2 layout per page function
     layout(2, 0, boardBounds2, actionBounds2, dialogBounds2, shotCountBounds2);
+    // save the file
+    saveFile();
   };
 
   if (sbStyle === 8) {
@@ -320,8 +330,11 @@ const main = function () {
     makeTextBox(titleBounds8, 1, "title", docTitle.text, true);
     //run the layout per page function
     layout(8, 1, boardBounds8, actionBounds8, dialogBounds8, shotCountBounds8);
+    // save the file
+    saveFile();
   };
 
+  //close dialogue and end script
   if (dlg.show !== 1) {
     exit();
     return;
