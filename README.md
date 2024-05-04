@@ -22,4 +22,4 @@ The script relies on the existing layout, so you must download the file Storyboa
 4. Not tested on PC.
 
 ## Future plans
-1. Check for known image files in the source directory
+1. Check for known image formats in the source directory
